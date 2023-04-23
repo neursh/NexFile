@@ -8,6 +8,7 @@ import 'package:flutter/services.dart' show rootBundle;
 class HttpService {
   late HttpServer server;
   late String explorer;
+  late String btStyle;
 
   String svgIcon(String fileEx) {
     fileEx = fileEx.toLowerCase();
@@ -89,7 +90,7 @@ class HttpService {
   String contentDisplay(String name, bool isFile) {
     String shortenName = name;
     if (name.length > 17) {
-      shortenName = '${name.substring(0, 10)}...${name.substring(name.length - 10, name.length)}';
+      shortenName = "${name.substring(0, 10)}...${name.substring(name.length - 10, name.length)}";
     }
 
     return "<a href=\"$name${isFile ? "" : "/"}\"><div class=\"card ${isFile ? "border-primary" : "border-success"}\" style=\"width: 15rem;\"><div class=\"card-body\" style=\"display: flex; gap: 5px;\">${!isFile ? "<svg height=\"24\" width=\"32\" fill=\"#FFFFFF\" viewBox=\"0 96 960 960\"><path d=\"M141 896q-24 0-42-18.5T81 836V316q0-23 18-41.5t42-18.5h280l60 60h340q23 0 41.5 18.5T881 376v460q0 23-18.5 41.5T821 896H141Zm0-580v520h680V376H456l-60-60H141Zm0 0v520-520Z\"/></svg>" : svgIcon(name.split(".").last)}<p class=\"card-text\">$shortenName</p></div></div></a>";
@@ -97,56 +98,70 @@ class HttpService {
 
   Future<Response> serverServe(Request request) async {
     String rawRequest = request.url.toFilePath();
-    String destination = "/storage/emulated/0/$rawRequest";
-    File target = File(destination);
-    FileSystemEntityType type = (await target.stat()).type;
+    List<String> args = rawRequest.split("/");
+    if (args[0] == "files") {
+      rawRequest = args.sublist(1).join("/");
+      String destination = "/storage/emulated/0/$rawRequest";
+      File target = File(destination);
+      FileSystemEntityType type = (await target.stat()).type;
 
-    if (type == FileSystemEntityType.file) {
-      String contentLength = (await target.length()).toString();
-      String targetType = lookupMimeType(destination) ?? "";
+      if (type == FileSystemEntityType.file) {
+        String contentLength = (await target.length()).toString();
+        String targetType = lookupMimeType(destination) ?? "";
 
-      if (request.headers.keys.contains("range")) {
-        var points = request.headers["range"]!.substring(6).split("-");
-        int starting = int.tryParse(points[0]) ?? 0;
-        int ending = int.tryParse(points[1]) ?? int.parse(contentLength) - 1;
-        return Response(206, body: target.openRead(starting, ending), headers: {
-          "Content-Type": targetType,
-          "Content-Length": contentLength,
-          "Accept-Ranges": "bytes",
-          "Content-Range": "bytes $starting-$ending/$contentLength"
-        });
+        if (request.headers.keys.contains("range")) {
+          var points = request.headers["range"]!.substring(6).split("-");
+          int starting = int.tryParse(points[0]) ?? 0;
+          int ending = int.tryParse(points[1]) ?? int.parse(contentLength) - 1;
+          return Response(206, body: target.openRead(starting, ending), headers: {
+            "Content-Type": targetType,
+            "Content-Length": contentLength,
+            "Accept-Ranges": "bytes",
+            "Content-Range": "bytes $starting-$ending/$contentLength"
+          });
+        }
+        return Response(200,
+            body: target.openRead(),
+            headers: {"Content-Type": targetType, "Content-Length": contentLength});
       }
-      return Response(200,
-          body: target.openRead(),
-          headers: {"Content-Type": targetType, "Content-Length": contentLength});
-    }
-    if (type == FileSystemEntityType.directory) {
-      List<String> folders = ["Home"] + rawRequest.split("/");
-      return Response(200,
-          body: explorer
-              .replaceAll(r"$WORKING-DIRECTORY$", "/$rawRequest")
-              .replaceAll(
-                  r"$PATH-CRUMB$",
-                  [
-                    for (int i = 0; i < folders.length; i++)
-                      "<li class=\"breadcrumb-item\"><a href=\"${[
-                        for (int c = folders.length - 2; c > i; c--) "../"
-                      ].join("")}\">${folders[i]}</a></li>"
-                  ].join("\n"))
-              .replaceAll(
-                  r"$DIRECTORY-CONTENTS$",
-                  [
-                    for (var obj in (await Directory(target.path).list().toList()))
-                      contentDisplay(
-                          basename(obj.path), (await obj.stat()).type == FileSystemEntityType.file),
-                  ].join("\n")),
-          headers: {"Content-Type": "text/html"});
+      if (type == FileSystemEntityType.directory) {
+        List<String> folders = ["Home"] + rawRequest.split("/");
+        return Response(200,
+            body: explorer
+                .replaceAll(r"$WORKING-DIRECTORY$", "/files/$rawRequest")
+                .replaceAll(
+                    r"$PATH-CRUMB$",
+                    [
+                      for (int i = 0; i < folders.length; i++)
+                        "<li class=\"breadcrumb-item\"><a href=\"${[
+                          for (int c = folders.length - 2; c > i; c--) "../"
+                        ].join("")}\">${folders[i]}</a></li>"
+                    ].join("\n"))
+                .replaceAll(
+                    r"$DIRECTORY-CONTENTS$",
+                    [
+                      for (var obj in (await Directory(target.path).list().toList()))
+                        contentDisplay(basename(obj.path),
+                            (await obj.stat()).type == FileSystemEntityType.file),
+                    ].join("\n")),
+            headers: {"Content-Type": "text/html"});
+      }
+      return Response(404, body: "Not found.");
+    } else if (args[0] == "bootstrap") {
+      if (request.headers.containsKey("If-None-Match") &&
+          request.headers["If-None-Match"] == "BOOTSTRAP_NEXFILE") {
+        return Response(304, headers: {"Connection": "close", "ETag": "BOOTSTRAP_NEXFILE"});
+      } else {
+        return Response(200,
+            body: btStyle, headers: {"Content-Type": "text/css", "ETag": "BOOTSTRAP_NEXFILE"});
+      }
     }
     return Response(404, body: "Not found.");
   }
 
   startService(String hostIP, port) async {
     explorer = await rootBundle.loadString("interface/index_compiled.html");
+    btStyle = await rootBundle.loadString("interface/styles/bootstrap.min.css");
     var handler = const Pipeline().addMiddleware(logRequests()).addHandler(serverServe);
     server = await shelf_io.serve(handler, hostIP, port, poweredByHeader: null);
   }
