@@ -2,7 +2,7 @@
     package="dev.neurs.nexfile">
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.NETWORKING"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
    <application
         android:label="NexFile"
         android:name="${applicationName}"
