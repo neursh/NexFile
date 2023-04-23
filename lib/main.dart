@@ -55,7 +55,7 @@ class _MainArea extends State<MainArea> {
                           (await Permission.storage.request()).isGranted) {
                         String hostIP = (await NetworkInfo().getWifiIP())!;
                         !serverStarted.value
-                            ? await svObj.startService(hostIP, port: port.value)
+                            ? await svObj.startService(hostIP, port.value)
                             : await svObj.stopService();
                         !serverStarted.value
                             ? hostedOn.value = "http://$hostIP:${port.value}"
