@@ -124,14 +124,14 @@ class _MainArea extends State<MainArea> {
                               builder: (context, child) => Column(children: [
                                     Text(hostedOn.value == ""
                                         ? "Đang chờ..."
-                                        : "Máy chủ đã được mở tại: ${hostedOn.value}"),
+                                        : "Máy chủ đã được mở tại: ${hostedOn.value}/files"),
                                     const SizedBox(height: 10),
                                     hostedOn.value != ""
                                         ? ClipRRect(
                                             borderRadius: BorderRadius.circular(12),
                                             child: QrImage(
                                               backgroundColor: Colors.white,
-                                              data: hostedOn.value,
+                                              data: "${hostedOn.value}/files",
                                               version: QrVersions.auto,
                                               size: 200.0,
                                             ))
