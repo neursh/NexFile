@@ -92,7 +92,7 @@ class HttpService {
       shortenName = '${name.substring(0, 10)}...${name.substring(name.length - 10, name.length)}';
     }
 
-    return "<a href=\"$name${isFile ? "" : "/"}\"><div class=\"card\" style=\"width: 15rem;\"><div class=\"card-body\" style=\"display: flex; gap: 5px;\">${!isFile ? "<svg height=\"24\" width=\"32\" fill=\"#FFFFFF\" viewBox=\"0 96 960 960\"><path d=\"M141 896q-24 0-42-18.5T81 836V316q0-23 18-41.5t42-18.5h280l60 60h340q23 0 41.5 18.5T881 376v460q0 23-18.5 41.5T821 896H141Zm0-580v520h680V376H456l-60-60H141Zm0 0v520-520Z\"/></svg>" : svgIcon(name.split(".").last)}<p class=\"card-text\">$shortenName</p></div></div></a>";
+    return "<a href=\"$name${isFile ? "" : "/"}\"><div class=\"card ${isFile ? "border-primary" : "border-success"}\" style=\"width: 15rem;\"><div class=\"card-body\" style=\"display: flex; gap: 5px;\">${!isFile ? "<svg height=\"24\" width=\"32\" fill=\"#FFFFFF\" viewBox=\"0 96 960 960\"><path d=\"M141 896q-24 0-42-18.5T81 836V316q0-23 18-41.5t42-18.5h280l60 60h340q23 0 41.5 18.5T881 376v460q0 23-18.5 41.5T821 896H141Zm0-580v520h680V376H456l-60-60H141Zm0 0v520-520Z\"/></svg>" : svgIcon(name.split(".").last)}<p class=\"card-text\">$shortenName</p></div></div></a>";
   }
 
   Future<Response> serverServe(Request request) async {
