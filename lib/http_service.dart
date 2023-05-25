@@ -82,7 +82,7 @@ class HttpService {
     ].contains(fileEx)) {
       return "<svg height=\"24\" width=\"32\" fill=\"#FFFFFF\" viewBox=\"0 0 24 24\"><title>video-outline</title><path d=\"M15,8V16H5V8H15M16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5V7A1,1 0 0,0 16,6Z\" /></svg>";
     } else if (["zip", "rar", "gzip", "7z"].contains(fileEx)) {
-      return "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><title>zip-box-outline</title><path d=\"M12 17V15H14V17H12M14 13V11H12V13H14M14 9V7H12V9H14M10 11H12V9H10V11M10 15H12V13H10V15M21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5M19 5H12V7H10V5H5V19H19V5Z\" /></svg>";
+      return "<svg height=\"24\" width=\"32\" fill=\"#FFFFFF\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><title>zip-box-outline</title><path d=\"M12 17V15H14V17H12M14 13V11H12V13H14M14 9V7H12V9H14M10 11H12V9H10V11M10 15H12V13H10V15M21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5M19 5H12V7H10V5H5V19H19V5Z\" /></svg>";
     }
     return "<svg height=\"24\" width=\"32\" fill=\"#FFFFFF\" viewBox=\"0 96 960 960\"><path d=\"M220 976q-24 0-42-18t-18-42V236q0-24 18-42t42-18h361l219 219v521q0 24-18 42t-42 18H220Zm331-554V236H220v680h520V422H551ZM220 236v186-186 680-680Z\"/></svg>";
   }
@@ -160,8 +160,8 @@ class HttpService {
   }
 
   startService(String hostIP, port) async {
-    explorer = await rootBundle.loadString("interface/index_compiled.html");
-    btStyle = await rootBundle.loadString("interface/styles/bootstrap.min.css");
+    explorer = await rootBundle.loadString("interface/index.html");
+    btStyle = await rootBundle.loadString("interface/bootstrap.min.css");
     var handler = const Pipeline().addMiddleware(logRequests()).addHandler(serverServe);
     server = await shelf_io.serve(handler, hostIP, port, poweredByHeader: null);
   }
